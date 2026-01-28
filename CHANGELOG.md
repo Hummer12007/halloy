@@ -7,6 +7,7 @@ Added:
 - Setting to style unread query buffers as highlights in the sidebar (`sidebar.unread_indicator.query_as_highlight`)
 - Settings to configure card and imagge preview dimensions 
 - Support for transparent background.
+- Setting to configure font line height (`font.line_height`)
 
 Fixed:
 
