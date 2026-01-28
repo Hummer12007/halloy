@@ -576,7 +576,7 @@ impl Sidebar {
                     // Add buffers to a column.
                     let buffers = column![
                         Scrollable::new(
-                            Column::with_children(buffers).spacing(1)
+                            Column::with_children(buffers).spacing(0)
                         )
                         .direction(
                             scrollable::Direction::Vertical(
