@@ -437,7 +437,7 @@ impl TitleBar {
 
         widget::TitleBar::new(title)
             .controls(pane_grid::Controls::new(controls))
-            .padding(6)
+            .padding([2, 6])
     }
 }
 
