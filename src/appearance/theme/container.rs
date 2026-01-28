@@ -21,7 +21,7 @@ pub fn buffer(theme: &Theme, selected: bool) -> Style {
     Style {
         background: Some(Background::Color(buffer.background)),
         border: Border {
-            radius: 4.0.into(),
+            radius: 0.0.into(),
             width: 1.0,
             color: if selected {
                 buffer.border_selected
@@ -40,7 +40,7 @@ pub fn buffer_title_bar(theme: &Theme) -> Style {
         background: Some(Background::Color(styles.background_title_bar)),
         text_color: Some(theme.styles().text.secondary.color),
         border: Border {
-            radius: border::top_left(4).top_right(4),
+            radius: border::top_left(0).top_right(0),
             width: 1.0,
             color: Color::TRANSPARENT,
         },
@@ -55,7 +55,7 @@ pub fn buffer_text_input(theme: &Theme) -> Style {
         background: Some(Background::Color(styles.background_text_input)),
         text_color: Some(theme.styles().text.secondary.color),
         border: Border {
-            radius: border::bottom_left(4).bottom_right(4),
+            radius: border::bottom_left(0).bottom_right(0),
             width: 1.0,
             color: Color::TRANSPARENT,
         },

@@ -27,7 +27,7 @@ pub fn primary(theme: &Theme) -> Style {
             border: Border {
                 width: 1.0,
                 color: general.border,
-                radius: 4.0.into(),
+                radius: 0.0.into(),
             },
         },
         picked_split: Line {
