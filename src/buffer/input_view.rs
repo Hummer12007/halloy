@@ -286,7 +286,7 @@ pub fn view<'a>(
     let mut text_input = text_editor(&state.input_content)
         .id(state.input_id.clone())
         .placeholder("Send message...")
-        .padding([2, 4])
+        .padding([0, 4])
         .wrapping(text::Wrapping::WordOrGlyph)
         .height(Length::Shrink)
         .line_height(theme::line_height(&config.font))
@@ -527,11 +527,11 @@ pub fn view<'a>(
         .max_height(
             (7.55 * theme::resolve_line_height(&config.font).ceil()).ceil(),
         )
-        .padding(8)
+        .padding([2, 8])
         .style(theme::container::buffer_text_input)
     ]
-    .spacing(4)
-    .padding(padding::top(4));
+    //.spacing(4)
+    .padding(padding::top(0));
 
     let overlay = column![
         state.completion.view(
