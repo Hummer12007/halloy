@@ -949,7 +949,7 @@ impl Commands {
                                 } else {
                                     theme::container::none
                                 })
-                                .padding(6)
+                                .padding([0, 6])
                                 .center_y(Length::Shrink),
                         )
                     }))
@@ -960,7 +960,7 @@ impl Commands {
                     let second_pass = content(Length::Fill);
 
                     container(double_pass(first_pass, second_pass))
-                        .padding(4)
+                        .padding([1, 4])
                         .style(theme::container::tooltip)
                         .width(Length::Shrink)
                         .into()
@@ -2698,7 +2698,7 @@ impl Emojis {
                                 } else {
                                     theme::container::none
                                 })
-                                .padding(6)
+                                .padding([0, 6])
                                 .center_y(Length::Shrink),
                         )
                     }))
@@ -2709,7 +2709,7 @@ impl Emojis {
                     let second_pass = content(Length::Fill);
 
                     container(double_pass(first_pass, second_pass))
-                        .padding(4)
+                        .padding([0, 4])
                         .style(theme::container::tooltip)
                         .width(Length::Shrink)
                         .into()
