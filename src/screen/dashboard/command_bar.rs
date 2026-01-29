@@ -73,7 +73,7 @@ impl CommandBar {
                 .on_option_hovered(Message::Hovered)
                 .size(font_size)
                 .line_height(line_height)
-                .padding([8, 8]);
+                .padding([1, 8]);
 
         // Capture ESC so we can close the combobox manually from application
         // and prevent undesired effects
