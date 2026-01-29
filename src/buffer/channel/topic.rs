@@ -175,7 +175,7 @@ pub fn view<'a>(
             .padding([0, 11])
     ]
     .padding(padding::top(4))
-    .spacing(8)
+    .spacing(0)
     .into()
 }
 
