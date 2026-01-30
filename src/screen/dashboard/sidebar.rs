@@ -627,12 +627,12 @@ impl Sidebar {
 
         let padding = match config.sidebar.position {
             sidebar::Position::Left => {
-                padding::top(8 + platform_specific_padding)
+                padding::top(0 + platform_specific_padding)
                     .bottom(6)
                     .left(6)
             }
             sidebar::Position::Right => {
-                padding::top(8 + platform_specific_padding)
+                padding::top(0 + platform_specific_padding)
                     .bottom(6)
                     .right(6)
             }
