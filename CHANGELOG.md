@@ -8,6 +8,7 @@ Added:
 - Settings to configure card and imagge preview dimensions 
 - Support for transparent background.
 - Setting to configure font line height (`font.line_height`)
+- Support requesting window attention (setting urgency) for notifications (`notifications.<type>.request-attention`)
 
 Fixed:
 

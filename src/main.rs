@@ -238,7 +238,7 @@ impl Halloy {
             ),
         };
 
-        let notifications = Notifications::new(&config);
+        let notifications = Notifications::new(&config, main_window.id);
 
         (
             Halloy {
@@ -560,21 +560,29 @@ impl Halloy {
                             )
                             .map(Message::Dashboard)
                     } else {
-                        self.notifications.notify(
+                        let attention_task = self.notifications.notify(
                             &self.config.notifications,
                             &Notification::Disconnected,
                             &server,
                         );
 
-                        dashboard
-                            .broadcast(
-                                &server,
-                                self.clients.get_casemapping(&server),
-                                &self.config,
-                                sent_time,
-                                Broadcast::Disconnected { error },
-                            )
-                            .map(Message::Dashboard)
+                        let mut tasks = vec![
+                            dashboard
+                                .broadcast(
+                                    &server,
+                                    self.clients.get_casemapping(&server),
+                                    &self.config,
+                                    sent_time,
+                                    Broadcast::Disconnected { error },
+                                )
+                                .map(Message::Dashboard),
+                        ];
+
+                        if let Some(task) = attention_task {
+                            tasks.push(task);
+                        }
+
+                        Task::batch(tasks)
                     }
                 }
                 stream::Update::Connected {
@@ -589,44 +597,56 @@ impl Halloy {
                         return Task::none();
                     };
 
-                    let broadcast = if is_initial {
-                        self.notifications.notify(
+                    let (broadcast, attention_task) = if is_initial {
+                        let attention_task = self.notifications.notify(
                             &self.config.notifications,
                             &Notification::Connected,
                             &server,
                         );
 
-                        dashboard
-                            .broadcast(
-                                &server,
-                                self.clients.get_casemapping(&server),
-                                &self.config,
-                                sent_time,
-                                Broadcast::Connected,
-                            )
-                            .map(Message::Dashboard)
+                        (
+                            dashboard
+                                .broadcast(
+                                    &server,
+                                    self.clients.get_casemapping(&server),
+                                    &self.config,
+                                    sent_time,
+                                    Broadcast::Connected,
+                                )
+                                .map(Message::Dashboard),
+                            attention_task,
+                        )
                     } else {
-                        self.notifications.notify(
+                        let attention_task = self.notifications.notify(
                             &self.config.notifications,
                             &Notification::Reconnected,
                             &server,
                         );
 
-                        dashboard
-                            .broadcast(
-                                &server,
-                                self.clients.get_casemapping(&server),
-                                &self.config,
-                                sent_time,
-                                Broadcast::Reconnected,
-                            )
-                            .map(Message::Dashboard)
+                        (
+                            dashboard
+                                .broadcast(
+                                    &server,
+                                    self.clients.get_casemapping(&server),
+                                    &self.config,
+                                    sent_time,
+                                    Broadcast::Reconnected,
+                                )
+                                .map(Message::Dashboard),
+                            attention_task,
+                        )
                     };
 
                     let refocus_pane =
                         dashboard.refocus_pane().map(Message::Dashboard);
 
-                    Task::batch(vec![broadcast, refocus_pane])
+                    let mut tasks = vec![broadcast, refocus_pane];
+
+                    if let Some(task) = attention_task {
+                        tasks.push(task);
+                    }
+
+                    Task::batch(tasks)
                 }
                 stream::Update::ConnectionFailed {
                     server,
@@ -768,7 +788,7 @@ impl Halloy {
                                                         ),
                                                     };
 
-                                                    self.notifications.notify(
+                                                    if let Some(task) = self.notifications.notify(
                                                         &self.config.notifications,
                                                         &Notification::Highlight {
                                                             user: highlight_user,
@@ -779,7 +799,9 @@ impl Halloy {
                                                             sound,
                                                         },
                                                         &server,
-                                                    );
+                                                    ) {
+                                                        commands.push(task);
+                                                    }
                                                 }
 
                                                 let task = dashboard.record_highlight(
@@ -802,7 +824,7 @@ impl Halloy {
                                                 let channel = channel.clone();
                                                 let user = user.clone();
 
-                                                self.notifications.notify(
+                                                if let Some(task) = self.notifications.notify(
                                                     &self.config.notifications,
                                                     &Notification::Channel {
                                                         user,
@@ -811,7 +833,9 @@ impl Halloy {
                                                         message: message.text(),
                                                     },
                                                     &server,
-                                                );
+                                                ) {
+                                                    commands.push(task);
+                                                }
                                             }
 
                                             commands.push(
@@ -1090,8 +1114,9 @@ impl Halloy {
                                                 let blocked = FilterChain::borrow(dashboard.get_filters()).filter_query(&query, &server);
                                                 let has_unread = dashboard.history().has_unread(&history::Kind::Query(server.clone(), query));
 
-                                                if !blocked && (has_unread || !self.main_window.focused) {
-                                                    self.notifications.notify(
+                                                if !blocked
+                                                    && (has_unread || !self.main_window.focused)
+                                                    && let Some(task) = self.notifications.notify(
                                                         &self.config.notifications,
                                                         &Notification::DirectMessage{
                                                             user,
@@ -1099,23 +1124,29 @@ impl Halloy {
                                                             message: message.text(),
                                                         },
                                                         &server,
-                                                    );
+                                                    )
+                                                {
+                                                    commands.push(task);
                                                 }
                                             }
                                     }
                                     Event::MonitoredOnline(users) => {
-                                        self.notifications.notify(
+                                        if let Some(task) = self.notifications.notify(
                                             &self.config.notifications,
                                             &Notification::MonitoredOnline(users),
                                             &server,
-                                        );
+                                        ) {
+                                            commands.push(task);
+                                        }
                                     }
                                     Event::MonitoredOffline(users) => {
-                                        self.notifications.notify(
+                                        if let Some(task) = self.notifications.notify(
                                             &self.config.notifications,
                                             &Notification::MonitoredOffline(users),
                                             &server,
-                                        );
+                                        ) {
+                                            commands.push(task);
+                                        }
                                     }
                                     Event::OnConnect(
                                         on_connect,
@@ -1322,12 +1353,30 @@ impl Halloy {
                         }
                         window::Event::Focused => {
                             self.main_window.focused = true;
+                            self.notifications.set_focused(true);
+                            if let Screen::Dashboard(dashboard) =
+                                &mut self.screen
+                            {
+                                dashboard.set_focused(true);
+                            }
                         }
                         window::Event::Unfocused => {
                             self.main_window.focused = false;
+                            self.notifications.set_focused(false);
+                            if let Screen::Dashboard(dashboard) =
+                                &mut self.screen
+                            {
+                                dashboard.set_focused(false);
+                            }
                         }
                         window::Event::Opened { position, size } => {
                             self.main_window.opened(position, size);
+                            self.notifications.set_focused(true);
+                            if let Screen::Dashboard(dashboard) =
+                                &mut self.screen
+                            {
+                                dashboard.set_focused(true);
+                            }
                         }
                         window::Event::CloseRequested => {
                             if let Screen::Dashboard(dashboard) =
@@ -1616,7 +1665,9 @@ impl Halloy {
                     .into();
 
                 // Load new notification sounds.
-                self.notifications = Notifications::new(&updated);
+                self.notifications =
+                    Notifications::new(&updated, self.main_window.id);
+                self.notifications.set_focused(self.main_window.focused);
 
                 self.config = updated;
 
